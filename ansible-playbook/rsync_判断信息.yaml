@@ -1,0 +1,30 @@
+#- hosts: rsync_server
+#  tasks:
+#    - name: 01-install rsync  
+#      yum: name=rsync state=installed
+#    - name: 02-push conf file    
+#      copy: src=/etc/ansible/server_file/rsync_server/rsyncd.conf dest=/etc/
+#    - name: 03-create user
+#      user: name=rsync create_home=no shell=/sbin/nologin
+#      #shell: useradd rsync -M -s /sbin/nologin 
+#    - name: 04-create backup dir
+#      file: path=/backup state=directory owner=rsync group=rsync
+#    - name: 05-create password file
+#      copy: content=rsync_backup:happy123 dest=/etc/rsync.password mode=600
+#    - name: 06-start rsync server
+#      service: name=rsyncd state=started enabled=yes
+
+- hosts: rsync_client
+  tasks:
+    - name: 01-centos-install rsync
+      yum: name=iftop state=installed
+      when: (ansible_distribution == "CentOS")
+    - name: 01-debain-install rsync
+      apt: name=iftop state=present
+      when: (ansible_distribution ==  "Debian")
+    - name: 02-create password file
+      copy: content=happy123 dest=/etc/rsync.password mode=600
+    - name: 03-create test file
+      file: dest=/tmp/test.txt  state=touch
+    - name: 04-check test
+      shell: rsync -avz /tmp/test.txt rsync_backup@192.168.122.151::backup --password-file=/etc/rsync.password
